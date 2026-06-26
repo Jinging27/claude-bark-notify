@@ -4,7 +4,7 @@
 声音列表见 README.md。
 """
 
-# ─── 🟢 会话结束（Stop < 10 分钟）────────────────────
+# ─── 🟢 回复完成（30 秒 ~ 10 分钟）──────────────────
 STOP_SOUND = "healthnotification"
 STOP_LEVEL = "active"
 
