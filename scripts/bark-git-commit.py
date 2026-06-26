@@ -1,9 +1,11 @@
 """PostToolUse Hook - Git 提交通知（去重 + 详细信息）"""
 import sys, os, re
-sys.path.insert(0, os.environ.get(
+
+SCRIPTS_DIR = os.environ.get(
     "BARK_SCRIPTS_DIR",
     os.path.dirname(os.path.abspath(__file__))
-))
+)
+sys.path.insert(0, SCRIPTS_DIR)
 
 from bark_shared import read_stdin_json, get_tool_input, get_tool_response, is_commit_seen, mark_commit_seen, send
 from bark_sounds import GIT_COMMIT_SOUND, GIT_COMMIT_LEVEL

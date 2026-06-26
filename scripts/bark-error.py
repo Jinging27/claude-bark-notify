@@ -2,10 +2,11 @@
 import sys
 import os
 
-sys.path.insert(0, os.environ.get(
+SCRIPTS_DIR = os.environ.get(
     "BARK_SCRIPTS_DIR",
     os.path.dirname(os.path.abspath(__file__))
-))
+)
+sys.path.insert(0, SCRIPTS_DIR)
 
 from bark_shared import read_stdin_json, get_tool_input, get_tool_response, send
 from bark_sounds import ERROR_SOUND, ERROR_LEVEL

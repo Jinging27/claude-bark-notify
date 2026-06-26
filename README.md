@@ -56,7 +56,7 @@
 
 ```bash
 # 克隆仓库
-git clone https://github.com/YOUR_USERNAME/claude-bark-notify.git
+git clone https://github.com/Jinging27/claude-bark-notify.git
 
 # 复制脚本到 Claude Code hooks 目录
 cp claude-bark-notify/scripts/*.py ~/.claude/scripts/
