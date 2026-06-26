@@ -12,11 +12,9 @@ SCRIPTS_DIR = os.environ.get(
 sys.path.insert(0, SCRIPTS_DIR)
 
 from datetime import datetime
-from bark_shared import send
+from bark_shared import send, TURN_SENTINEL
 from bark_sounds import STOP_SOUND, STOP_LEVEL, LONG_TASK_SOUND, LONG_TASK_LEVEL
 
-# 读取本轮提问时间（由 UserPromptSubmit hook 写入）
-TURN_SENTINEL = os.path.join(SCRIPTS_DIR, ".bark-turn-start")
 LONG_TASK_MINUTES = 10
 MIN_NOTIFY_SECONDS = 30  # 低于此秒数不推送
 

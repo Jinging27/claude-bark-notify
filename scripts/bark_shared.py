@@ -17,6 +17,7 @@ SCRIPTS_DIR = os.environ.get(
     os.path.dirname(os.path.abspath(__file__))
 )
 SEEN_FILE = os.path.join(SCRIPTS_DIR, ".bark-seen-commits")
+TURN_SENTINEL = os.path.join(SCRIPTS_DIR, ".bark-turn-start")
 
 
 def is_configured() -> bool:
@@ -87,10 +88,10 @@ def get_tool_response(data: dict) -> dict:
 
 
 def is_commit_seen(hash_str: str) -> bool:
-    """检查该 commit 是否已通知过（去重）"""
+    """检查该 commit 是否已通知过（去重，逐行精确匹配）"""
     try:
         with open(SEEN_FILE, "r") as f:
-            return hash_str in f.read()
+            return any(line.strip() == hash_str for line in f)
     except FileNotFoundError:
         return False
 
