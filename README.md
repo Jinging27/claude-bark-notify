@@ -18,12 +18,13 @@
 
 | # | 功能 | 触发时机 | 默认声音 | 级别 |
 |---|------|---------|---------|------|
-| 🟢 | **回复完成** | 本轮回复 < 10 分钟 | `healthnotification` | active |
+| 🟢 | **回复完成** | 本轮回复 30 秒 ~ 10 分钟 | `healthnotification` | active |
 | 🟣 | **长任务完成** | 本轮回复 ≥ 10 分钟 | `shake` | active |
 | 🔵 | **Git 提交通知** | `git commit` 成功 | `chime` | active |
 | 🔴 | **错误报警** | 任何工具调用失败 | `alarm` | ⚡ timeSensitive |
 
 > **timeSensitive** 级别会突破 iOS 勿扰模式，重要错误绝不错过。
+> 回复耗时低于 30 秒的短回复不会推送通知，避免刷屏。
 
 ---
 
@@ -259,7 +260,8 @@ Claude 回复中...
 - **UserPromptSubmit** 时记录时间戳到 `.bark-turn-start`
 - **Stop** 时读取时间戳，计算**本轮回复**的精确耗时
 - 每轮独立计时，不会累加
-- 耗时 < 10 分钟 → 普通通知（healthnotification）
+- 耗时 < 30 秒 → 静默，不推送（避免刷屏）
+- 耗时 30 秒 ~ 10 分钟 → 普通通知（healthnotification）
 - 耗时 ≥ 10 分钟 → 长任务通知（shake 🎉）
 
 ### Git 提交去重
