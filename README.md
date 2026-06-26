@@ -64,17 +64,7 @@ cp claude-bark-notify/scripts/*.py ~/.claude/scripts/
 
 ### 第二步：配置 BARK_KEY
 
-在你的 shell 配置文件（`.bashrc` / `.zshrc` / PowerShell `$PROFILE`）中添加：
-
-```bash
-# Bash / Zsh
-export BARK_KEY="你的Bark推送Key"
-
-# PowerShell
-$env:BARK_KEY = "你的Bark推送Key"
-```
-
-或者在 Claude Code 的 `settings.json` 中配置：
+**推荐方式** — 在 Claude Code 的 `settings.json` 中配置（hooks 必须用这种方式）：
 
 ```json
 {
@@ -82,6 +72,16 @@ $env:BARK_KEY = "你的Bark推送Key"
     "BARK_KEY": "你的Bark推送Key"
   }
 }
+```
+
+或者在 shell 配置文件（`.bashrc` / `.zshrc` / PowerShell `$PROFILE`）中添加：
+
+```bash
+# Bash / Zsh
+export BARK_KEY="你的Bark推送Key"
+
+# PowerShell
+$env:BARK_KEY = "你的Bark推送Key"
 ```
 
 ### 第三步：添加 Hook 配置

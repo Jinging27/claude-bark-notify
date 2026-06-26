@@ -37,6 +37,7 @@ def send(
 ) -> bool:
     """发送 Bark 通知。返回是否成功。"""
     if not is_configured():
+        print("[bark] BARK_KEY 未配置，通知跳过。请在 settings.json 的 env 中设置 BARK_KEY", file=sys.stderr)
         return False
 
     parts = [
