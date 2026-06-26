@@ -1,0 +1,53 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "python3 ~/.claude/scripts/bark-session-start.py",
+            "type": "command",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "command": "python3 ~/.claude/scripts/bark-stop.py",
+            "statusMessage": "推送 Bark 通知...",
+            "timeout": 15,
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "command": "python3 ~/.claude/scripts/bark-git-commit.py",
+            "if": "Bash(git commit*)",
+            "type": "command",
+            "async": true,
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "hooks": [
+          {
+            "command": "python3 ~/.claude/scripts/bark-error.py",
+            "type": "command",
+            "async": true,
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

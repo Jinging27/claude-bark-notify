@@ -1,0 +1,11 @@
+# 运行时生成的文件
+.bark-seen-commits
+.bark-session-start
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
