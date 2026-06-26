@@ -18,8 +18,8 @@
 
 | # | 功能 | 触发时机 | 默认声音 | 级别 |
 |---|------|---------|---------|------|
-| 🟢 | **短会话结束** | 会话 < 10 分钟 | `healthnotification` | active |
-| 🟣 | **长任务完成** | 会话 ≥ 10 分钟 | `shake` | active |
+| 🟢 | **回复完成** | 本轮回复 < 10 分钟 | `healthnotification` | active |
+| 🟣 | **长任务完成** | 本轮回复 ≥ 10 分钟 | `shake` | active |
 | 🔵 | **Git 提交通知** | `git commit` 成功 | `chime` | active |
 | 🔴 | **错误报警** | 任何工具调用失败 | `alarm` | ⚡ timeSensitive |
 
@@ -33,8 +33,9 @@
 ~/.claude/scripts/
 ├── bark_shared.py          # 共享模块（Bark API 封装、去重逻辑）
 ├── bark_sounds.py          # 🔧 声音配置文件（改声音改这个）
-├── bark-stop.py            # Stop hook：智能判断短会话 / 长任务
-├── bark-session-start.py   # SessionStart hook：记录开始时间
+├── bark-stop.py            # Stop hook：智能判断短回复 / 长任务
+├── bark-turn-start.py      # UserPromptSubmit hook：记录本轮提问时间
+├── bark-session-start.py   # SessionStart hook：清理去重缓存
 ├── bark-git-commit.py      # PostToolUse hook：Git 提交通知
 ├── bark-error.py           # PostToolUseFailure hook：错误报警
 └── bark-test.py            # 🧪 一键测试脚本
@@ -89,11 +90,11 @@ $env:BARK_KEY = "你的Bark推送Key"
 ```json
 {
   "hooks": {
-    "SessionStart": [
+    "UserPromptSubmit": [
       {
         "hooks": [
           {
-            "command": "python3 ~/.claude/scripts/bark-session-start.py",
+            "command": "python3 ~/.claude/scripts/bark-turn-start.py",
             "type": "command",
             "timeout": 5
           }
@@ -222,35 +223,44 @@ ERROR_LEVEL = "timeSensitive"       # ⚡ 突破勿扰
 ## 🔧 工作原理
 
 ```
-┌─────────────────────────────────────────────────┐
-│              Claude Code Hook 系统               │
-├─────────────┬───────────────┬───────────────────┤
-│ SessionStart│      Stop     │ PostToolUse(Fail) │
-└──────┬──────┴───────┬───────┴─────────┬─────────┘
-       │              │                 │
-       ▼              ▼                 ▼
-  记录开始时间    计算会话时长        提取错误信息
-       │              │                 │
-       └──────────────┼─────────────────┘
-                      ▼
-              ┌──────────────┐
-              │  bark_shared  │  ← 统一封装 Bark API
-              │   .send()    │
-              └──────┬───────┘
-                     ▼
-              ┌──────────────┐
-              │  api.day.app │  ← Bark 推送服务
-              └──────┬───────┘
-                     ▼
-                 📱 iPhone
+┌──────────────────────────────────────────────────────────┐
+│                  Claude Code Hook 系统                    │
+├──────────────────┬───────────────┬───────────────────────┤
+│ UserPromptSubmit │      Stop     │  PostToolUse(Failure) │
+└────────┬─────────┴───────┬───────┴───────────┬───────────┘
+         │                 │                   │
+         ▼                 ▼                   ▼
+    记录提问时间      计算本轮耗时          提取错误信息
+         │                 │                   │
+         └─────────────────┼───────────────────┘
+                           ▼
+                   ┌──────────────┐
+                   │  bark_shared  │  ← 统一封装 Bark API
+                   │   .send()    │
+                   └──────┬───────┘
+                          ▼
+                   ┌──────────────┐
+                   │  api.day.app │  ← Bark 推送服务
+                   └──────┬───────┘
+                          ▼
+                      📱 iPhone
 ```
 
-### 智能时长判断
+### 单轮计时（精确到秒）
 
-- **SessionStart** 时记录时间戳到 `.bark-session-start`
-- **Stop** 时读取时间戳，计算精确到秒的会话时长
-- 时长 < 10 分钟 → 短会话通知（healthnotification）
-- 时长 ≥ 10 分钟 → 长任务通知（shake 🎉）
+```
+用户提问 → UserPromptSubmit 记录时间
+              ↓
+Claude 回复中...
+              ↓
+回复完成 → Stop 读取时间，计算本轮耗时
+```
+
+- **UserPromptSubmit** 时记录时间戳到 `.bark-turn-start`
+- **Stop** 时读取时间戳，计算**本轮回复**的精确耗时
+- 每轮独立计时，不会累加
+- 耗时 < 10 分钟 → 普通通知（healthnotification）
+- 耗时 ≥ 10 分钟 → 长任务通知（shake 🎉）
 
 ### Git 提交去重
 

@@ -1,10 +1,10 @@
 {
   "hooks": {
-    "SessionStart": [
+    "UserPromptSubmit": [
       {
         "hooks": [
           {
-            "command": "python3 ~/.claude/scripts/bark-session-start.py",
+            "command": "python3 ~/.claude/scripts/bark-turn-start.py",
             "type": "command",
             "timeout": 5
           }
