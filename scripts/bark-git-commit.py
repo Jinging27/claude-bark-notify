@@ -1,8 +1,5 @@
-"""PostToolUse Hook - Git 提交通知（去重）"""
-import sys
-import os
-import re
-
+"""PostToolUse Hook - Git 提交通知（去重 + 详细信息）"""
+import sys, os, re
 sys.path.insert(0, os.environ.get(
     "BARK_SCRIPTS_DIR",
     os.path.dirname(os.path.abspath(__file__))
@@ -16,6 +13,7 @@ cmd = get_tool_input(data).get("command", "")
 output = get_tool_response(data).get("output", "")
 
 # 从 output 提取 commit hash 做去重
+commit_hash = ""
 hash_match = re.search(r"\[(?:main|master|[\w-]+)\s+([a-f0-9]{7,})\]", output)
 if hash_match:
     commit_hash = hash_match.group(1)
@@ -23,32 +21,45 @@ if hash_match:
         sys.exit(0)
     mark_commit_seen(commit_hash)
 
-# 提取 commit message（支持多种写法）
+# ─── 提取 commit message ───────────────────────────────
 msg = ""
-
-# 1. 双引号 / 单引号：git commit -m "msg" / -m 'msg' / --message "msg"
 m = re.search(r'(?:-m|--message)\s+["\'](.+?)["\']', cmd)
+if not m:
+    m = re.search(r'(?:-m|--message)\s+(\S+)', cmd)
 if m:
     msg = m.group(1)
-else:
-    # 2. 无引号：git commit -m msg
-    m = re.search(r'(?:-m|--message)\s+(\S+)', cmd)
-    if m:
-        msg = m.group(1)
-    else:
-        # 3. 从 output 提取
-        for line in output.split("\n"):
-            line = line.strip()
-            bracket = re.search(r"\]\s*(.+)", line)
-            if bracket:
-                msg = bracket.group(1)
-                break
-            if "file" in line and "changed" in line:
-                msg = f"提交完成：{line}"
-                break
+
+# ─── 从 output 提取详细信息 ─────────────────────────────
+branch = ""
+file_stats = ""
+commit_line = ""
+
+for line in output.split("\n"):
+    line = line.strip()
+    # [main abc1234] commit message（作为 message 的 fallback）
+    bracket = re.search(r"\[([\w-]+)\s+[a-f0-9]+\]\s*(.+)", line)
+    if bracket:
+        branch = bracket.group(1)
+        if not msg:
+            commit_line = bracket.group(2)
+    # 3 files changed, 15 insertions(+), 2 deletions(-)
+    stat = re.search(r"(\d+ files? changed.*)", line)
+    if stat:
+        file_stats = stat.group(1)
 
 if not msg:
-    msg = "有新的 commit"
+    msg = commit_line or "有新的 commit"
+
+# ─── 组装通知内容 ───────────────────────────────────────
+body_parts = [msg]
+if branch:
+    body_parts[0] = f"[{branch}] {msg}"
+if file_stats:
+    body_parts.append(file_stats)
+if commit_hash:
+    body_parts.append(f"#{commit_hash}")
+
+body = "\n".join(body_parts)
 
 title = "Git 提交"
-send(title=title, body=msg, sound=GIT_COMMIT_SOUND, level=GIT_COMMIT_LEVEL)
+send(title=title, body=body, sound=GIT_COMMIT_SOUND, level=GIT_COMMIT_LEVEL)

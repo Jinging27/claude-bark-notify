@@ -18,14 +18,17 @@ from bark_sounds import STOP_SOUND, STOP_LEVEL, LONG_TASK_SOUND, LONG_TASK_LEVEL
 # 读取本轮提问时间（由 UserPromptSubmit hook 写入）
 TURN_SENTINEL = os.path.join(SCRIPTS_DIR, ".bark-turn-start")
 LONG_TASK_MINUTES = 10
+MIN_NOTIFY_SECONDS = 30  # 低于此秒数不推送
 
 is_long = False
+is_short = False
 duration = ""
 try:
     with open(TURN_SENTINEL, "r", encoding="utf-8") as f:
         start = datetime.fromisoformat(f.read().strip())
     total = int((datetime.now() - start).total_seconds())
     is_long = total >= LONG_TASK_MINUTES * 60
+    is_short = total < MIN_NOTIFY_SECONDS
     h, remainder = divmod(total, 3600)
     m, s = divmod(remainder, 60)
     if h > 0:
@@ -36,6 +39,10 @@ try:
         duration = f"{s} 秒"
 except Exception:
     pass
+
+# 短回复静默
+if is_short and not is_long:
+    sys.exit(0)
 
 if is_long:
     title = "🎉 长任务完成"
