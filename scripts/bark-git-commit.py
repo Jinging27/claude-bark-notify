@@ -16,7 +16,7 @@ output = get_tool_response(data).get("output", "")
 
 # 从 output 提取 commit hash 做去重
 commit_hash = ""
-hash_match = re.search(r"\[(?:main|master|[\w-]+)\s+([a-f0-9]{7,})\]", output)
+hash_match = re.search(r"\[(?:main|master|[\w./-]+)\s+([a-f0-9]{7,})\]", output)
 if hash_match:
     commit_hash = hash_match.group(1)
     if is_commit_seen(commit_hash):
@@ -25,7 +25,9 @@ if hash_match:
 
 # ─── 提取 commit message ───────────────────────────────
 msg = ""
-m = re.search(r'(?:-m|--message)\s+["\'](.+?)["\']', cmd)
+m = re.search(r"(?:-m|--message)\s+\"([^\"]+)\"", cmd)
+if not m:
+    m = re.search(r"(?:-m|--message)\s+'([^']+)'", cmd)
 if not m:
     m = re.search(r'(?:-m|--message)\s+(\S+)', cmd)
 if m:
@@ -39,7 +41,7 @@ commit_line = ""
 for line in output.split("\n"):
     line = line.strip()
     # [main abc1234] commit message（作为 message 的 fallback）
-    bracket = re.search(r"\[([\w-]+)\s+[a-f0-9]+\]\s*(.+)", line)
+    bracket = re.search(r"\[([\w./-]+)\s+[a-f0-9]+\]\s*(.+)", line)
     if bracket:
         branch = bracket.group(1)
         if not msg:

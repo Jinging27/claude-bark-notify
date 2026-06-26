@@ -41,7 +41,7 @@ except Exception:
     pass
 
 # 短回复静默
-if is_short and not is_long:
+if is_short:
     sys.exit(0)
 
 if is_long:

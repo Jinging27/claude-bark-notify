@@ -12,7 +12,10 @@ import urllib.request
 BARK_KEY = os.environ.get("BARK_KEY", "")
 BARK_BASE = "https://api.day.app"
 BARK_ICON = "https://i.ibb.co/twGCn2Xx/claude-color.png"
-SCRIPTS_DIR = r"C:\Users\yinchangjing\.claude\scripts"
+SCRIPTS_DIR = os.environ.get(
+    "BARK_SCRIPTS_DIR",
+    os.path.dirname(os.path.abspath(__file__))
+)
 SEEN_FILE = os.path.join(SCRIPTS_DIR, ".bark-seen-commits")
 
 
@@ -44,7 +47,7 @@ def send(
     params = {
         "sound": sound,
         "level": level,
-        "group": urllib.parse.quote(group),
+        "group": urllib.parse.quote(group, safe=""),
         "icon": BARK_ICON,
         "isArchive": str(is_archive),
     }
