@@ -1,7 +1,6 @@
 """bark_shared - 通用 Bark 推送模块
 
 所有 hook 脚本通过 import 调用 send() 发送通知。
-路径优先级：BARK_SCRIPTS_DIR 环境变量 > __file__ 所在目录
 """
 import os
 import sys
@@ -13,12 +12,7 @@ import urllib.request
 BARK_KEY = os.environ.get("BARK_KEY", "")
 BARK_BASE = "https://api.day.app"
 BARK_ICON = "https://i.ibb.co/twGCn2Xx/claude-color.png"
-
-# 脚本目录：优先环境变量，其次 __file__ 所在目录
-SCRIPTS_DIR = os.environ.get(
-    "BARK_SCRIPTS_DIR",
-    os.path.dirname(os.path.abspath(__file__))
-)
+SCRIPTS_DIR = r"C:\Users\yinchangjing\.claude\scripts"
 SEEN_FILE = os.path.join(SCRIPTS_DIR, ".bark-seen-commits")
 
 
@@ -44,8 +38,8 @@ def send(
     parts = [
         BARK_BASE,
         BARK_KEY,
-        urllib.parse.quote(title),
-        urllib.parse.quote(body),
+        urllib.parse.quote(title, safe=""),
+        urllib.parse.quote(body, safe=""),
     ]
     params = {
         "sound": sound,
